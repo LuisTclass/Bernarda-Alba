@@ -21,7 +21,30 @@ import {
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user, logout, getUserStats, getUserProgress } = useAuth();
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [userStats, setUserStats] = useState(null);
+  const [userProgress, setUserProgress] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const [stats, progress] = await Promise.all([
+          getUserStats(),
+          getUserProgress()
+        ]);
+        setUserStats(stats);
+        setUserProgress(progress);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [getUserStats, getUserProgress]);
 
   const studyModes = [
     {
