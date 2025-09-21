@@ -134,29 +134,37 @@ const Quiz = () => {
     }
   };
 
-  const handleFinishQuiz = () => {
+  const handleFinishQuiz = async () => {
     setIsFinished(true);
-    // Calcular resultados
-    let correctCount = 0;
-    questions.forEach(question => {
-      const userAnswer = userAnswers[question.id];
-      if (question.type === 'boolean') {
-        if (userAnswer === question.correctAnswer) correctCount++;
-      } else if (question.type === 'multiple') {
-        if (userAnswer === question.correctAnswer) correctCount++;
-      }
-      // Para essays no contamos automáticamente como correcto
-    });
     
-    navigate('/results', { 
-      state: { 
-        score: correctCount, 
-        total: questions.length, 
-        mode,
-        answers: userAnswers,
-        questions 
-      } 
-    });
+    try {
+      const finishResponse = await quizAPI.finishQuiz(
+        currentQuiz.quiz_id,
+        {
+          end_time: new Date().toISOString(),
+          answers: Object.entries(userAnswers).map(([questionId, userAnswer]) => ({
+            question_id: questionId,
+            user_answer: userAnswer
+          }))
+        },
+        token
+      );
+      
+      navigate('/results', { 
+        state: { 
+          results: finishResponse,
+          mode,
+          quizId: currentQuiz.quiz_id
+        } 
+      });
+    } catch (error) {
+      console.error('Error finishing quiz:', error);
+      toast({
+        title: "Error",
+        description: "Error al finalizar el quiz. Inténtalo de nuevo.",
+        duration: 3000,
+      });
+    }
   };
 
   const getDifficultyColor = (difficulty) => {
