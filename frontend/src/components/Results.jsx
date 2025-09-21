@@ -20,12 +20,29 @@ import {
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { getUserStats } = useAuth();
+  const [userStats, setUserStats] = useState(null);
   
-  const { score, total, mode, answers, questions } = location.state || {
-    score: 0, total: 0, mode: 'practice', answers: {}, questions: []
+  const { results, mode, quizId } = location.state || {
+    results: { score: 0, total: 0, percentage: 0, category_breakdown: {} },
+    mode: 'practice'
   };
 
-  const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+  useEffect(() => {
+    // Refresh user stats after quiz completion
+    const refreshStats = async () => {
+      const stats = await getUserStats();
+      setUserStats(stats);
+    };
+    refreshStats();
+  }, [getUserStats]);
+
+  if (!results) {
+    navigate('/');
+    return null;
+  }
+
+  const { score, total, percentage, category_breakdown, incorrect_questions } = results;
   
   const getGrade = (percentage) => {
     if (percentage >= 90) return { grade: 'Excelente', color: 'text-green-600', bg: 'bg-green-50' };
