@@ -123,6 +123,21 @@ const Home = () => {
       {/* Header */}
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <div></div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-stone-600">Bienvenido, {user?.name}</span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={logout}
+                className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Salir
+              </Button>
+            </div>
+          </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-800 to-stone-700 bg-clip-text text-transparent mb-4">
             La Casa de Bernarda Alba
           </h1>
