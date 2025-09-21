@@ -24,6 +24,7 @@ const Quiz = () => {
   const { mode } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { token } = useAuth();
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
@@ -31,19 +32,38 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(mode === 'exam' ? 1800 : null); // 30 minutos para examen
   const [isFinished, setIsFinished] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentQuiz, setCurrentQuiz] = useState(null);
 
-  // Filtrar preguntas según el modo
-  const questions = useMemo(() => {
-    let filtered = [...mockQuestions];
-    if (mode === 'exam') {
-      // Seleccionar 20 preguntas aleatorias para el examen
-      filtered = filtered.sort(() => 0.5 - Math.random()).slice(0, 20);
-    } else if (mode === 'review') {
-      // Simular preguntas falladas previamente
-      filtered = filtered.filter(q => [1, 4, 7, 8].includes(q.id));
+  // Inicializar quiz al cargar el componente
+  useEffect(() => {
+    const initializeQuiz = async () => {
+      try {
+        const quizData = {
+          mode: mode,
+          question_count: mode === 'exam' ? 20 : null
+        };
+
+        const quizResponse = await quizAPI.startQuiz(quizData, token);
+        setQuestions(quizResponse.questions);
+        setCurrentQuiz(quizResponse);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error starting quiz:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo cargar el quiz. Inténtalo de nuevo.",
+          duration: 3000,
+        });
+        navigate('/');
+      }
+    };
+
+    if (token) {
+      initializeQuiz();
     }
-    return filtered;
-  }, [mode]);
+  }, [mode, token, navigate, toast]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
