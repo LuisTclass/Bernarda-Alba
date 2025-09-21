@@ -6,6 +6,8 @@ import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../contexts/AuthContext';
+import { quizAPI } from '../api';
 import { 
   Clock, 
   CheckCircle, 
@@ -17,7 +19,6 @@ import {
   BookOpen,
   Target
 } from 'lucide-react';
-import { mockQuestions } from '../mock';
 
 const Quiz = () => {
   const { mode } = useParams();
