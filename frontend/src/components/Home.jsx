@@ -27,8 +27,8 @@ const Home = () => {
       title: 'Modo Práctica',
       description: 'Estudia sin presión con retroalimentación inmediata',
       icon: BookOpen,
-      color: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
-      hoverColor: 'from-emerald-600 to-emerald-700',
+      color: 'bg-gradient-to-br from-slate-600 to-slate-700',
+      hoverColor: 'from-slate-700 to-slate-800',
       questions: '∞ preguntas',
       time: 'Sin límite'
     },
