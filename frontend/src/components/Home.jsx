@@ -37,8 +37,8 @@ const Home = () => {
       title: 'Simulacro Selectividad',
       description: 'Examen cronometrado como el real de selectividad',
       icon: Clock,
-      color: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      hoverColor: 'from-blue-600 to-blue-700',
+      color: 'bg-gradient-to-br from-red-700 to-red-800',
+      hoverColor: 'from-red-800 to-red-900',
       questions: '20 preguntas',
       time: '30 minutos'
     },
