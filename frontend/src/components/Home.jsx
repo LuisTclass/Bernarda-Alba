@@ -79,17 +79,44 @@ const Home = () => {
     }
   ];
 
-  const quickStats = [
-    { label: 'Preguntas correctas', value: '35/50', icon: Target, color: 'text-emerald-600' },
-    { label: 'Racha actual', value: '7 seguidas', icon: Trophy, color: 'text-amber-600' },
-    { label: 'Tiempo promedio', value: '45 seg', icon: TrendingUp, color: 'text-blue-600' }
-  ];
+  const quickStats = userStats ? [
+    { 
+      label: 'Preguntas correctas', 
+      value: `${userStats.correct_answers}/${userStats.total_questions}`, 
+      icon: Target, 
+      color: 'text-emerald-600' 
+    },
+    { 
+      label: 'Racha actual', 
+      value: `${userStats.streak} seguidas`, 
+      icon: Trophy, 
+      color: 'text-amber-600' 
+    },
+    { 
+      label: 'Tiempo promedio', 
+      value: `${userStats.average_time} seg`, 
+      icon: TrendingUp, 
+      color: 'text-blue-600' 
+    }
+  ] : [];
 
-  const themes = [
-    { name: 'Personajes', progress: 80, icon: Users, questions: 15 },
-    { name: 'Temas principales', progress: 67, icon: Heart, questions: 18 },
-    { name: 'Simbolismo', progress: 65, icon: Eye, questions: 22 }
-  ];
+  const themes = userProgress ? Object.entries(userProgress.category_stats || {}).map(([category, stats]) => ({
+    name: category.charAt(0).toUpperCase() + category.slice(1),
+    progress: stats.percentage || 0,
+    icon: category === 'personajes' ? Users : category === 'temas' ? Heart : Eye,
+    questions: stats.total || 0
+  })) : [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-stone-600">Cargando tu progreso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
