@@ -167,17 +167,17 @@ const Home = () => {
             </div>
 
             {/* Quick Actions */}
-            <Card className="mt-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+            <Card className="mt-6 bg-gradient-to-br from-red-50 to-red-100 border-red-200">
               <CardHeader>
-                <CardTitle className="text-lg text-amber-800">Consejo de Estudio</CardTitle>
+                <CardTitle className="text-lg text-red-900">Consejo de Estudio</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-amber-700 mb-4">
-                  Enfócate en el simbolismo y los temas principales. Son fundamentales para la selectividad.
+                <p className="text-sm text-red-800 mb-4">
+                  La represión y el luto dominan la casa. Analiza cómo estos temas se reflejan en cada personaje.
                 </p>
                 <Button 
                   size="sm" 
-                  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
+                  className="w-full bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900"
                   onClick={() => navigate('/quiz/practice')}
                 >
                   Empezar a Practicar
