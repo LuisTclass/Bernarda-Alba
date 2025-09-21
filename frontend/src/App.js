@@ -9,7 +9,7 @@ import Progress from "./components/Progress";
 
 function App() {
   return (
-    <div className="App min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
+    <div className="App min-h-screen bg-gradient-to-br from-stone-100 via-gray-50 to-slate-100">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
