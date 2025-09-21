@@ -84,19 +84,33 @@ const Quiz = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswer = (answer) => {
+  const handleAnswer = async (answer) => {
     setSelectedAnswer(answer);
     setUserAnswers({ ...userAnswers, [currentQuestion.id]: answer });
     
-    if (mode === 'practice') {
-      setShowExplanation(true);
-      const isCorrect = currentQuestion.type === 'boolean' 
-        ? answer === currentQuestion.correctAnswer
-        : answer === currentQuestion.correctAnswer;
-      
+    try {
+      const answerResponse = await quizAPI.submitAnswer(
+        currentQuiz.quiz_id,
+        {
+          question_id: currentQuestion.id,
+          user_answer: answer
+        },
+        token
+      );
+
+      if (mode === 'practice') {
+        setShowExplanation(true);
+        toast({
+          title: answerResponse.correct ? "¡Correcto!" : "Incorrecto",
+          description: answerResponse.explanation,
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting answer:', error);
       toast({
-        title: isCorrect ? "¡Correcto!" : "Incorrecto",
-        description: currentQuestion.explanation,
+        title: "Error",
+        description: "Error al enviar la respuesta. Inténtalo de nuevo.",
         duration: 3000,
       });
     }
