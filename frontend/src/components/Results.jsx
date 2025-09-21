@@ -76,37 +76,9 @@ const Results = () => {
   };
 
   // Calcular estadísticas por categoría
-  const categoryStats = {};
-  questions.forEach(question => {
-    if (!categoryStats[question.category]) {
-      categoryStats[question.category] = { correct: 0, total: 0 };
-    }
-    categoryStats[question.category].total++;
-    
-    const userAnswer = answers[question.id];
-    let isCorrect = false;
-    
-    if (question.type === 'boolean') {
-      isCorrect = userAnswer === question.correctAnswer;
-    } else if (question.type === 'multiple') {
-      isCorrect = userAnswer === question.correctAnswer;
-    }
-    // Para essays no contamos automáticamente
-    
-    if (isCorrect) {
-      categoryStats[question.category].correct++;
-    }
-  });
+  const categoryStats = category_breakdown || {};
 
-  const incorrectQuestions = questions.filter(question => {
-    const userAnswer = answers[question.id];
-    if (question.type === 'boolean') {
-      return userAnswer !== question.correctAnswer;
-    } else if (question.type === 'multiple') {
-      return userAnswer !== question.correctAnswer;
-    }
-    return false; // Para essays no consideramos automáticamente como incorrectas
-  });
+  const incorrectCount = (incorrect_questions && incorrect_questions.length) || (total - score);
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-slate-50 to-gray-100">
