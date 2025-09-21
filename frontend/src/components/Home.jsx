@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   BookOpen, 
   Clock, 
@@ -14,7 +15,8 @@ import {
   Heart, 
   Eye,
   TrendingUp,
-  Star
+  Star,
+  LogOut
 } from 'lucide-react';
 
 const Home = () => {
