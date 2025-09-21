@@ -71,12 +71,12 @@ const Home = () => {
       {/* Header */}
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-800 to-stone-700 bg-clip-text text-transparent mb-4">
             La Casa de Bernarda Alba
           </h1>
-          <p className="text-xl text-gray-600 mb-2">Prepárate para la Selectividad Española</p>
-          <Badge variant="outline" className="text-sm px-3 py-1">
-            <Star className="w-4 h-4 mr-1" />
+          <p className="text-xl text-stone-600 mb-2">Prepárate para la Selectividad Española</p>
+          <Badge variant="outline" className="text-sm px-3 py-1 border-stone-300 text-stone-700">
+            <Star className="w-4 h-4 mr-1 fill-amber-400 text-amber-500" />
             Federico García Lorca
           </Badge>
         </div>
