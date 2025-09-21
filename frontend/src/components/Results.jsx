@@ -190,14 +190,14 @@ const Results = () => {
                   Volver al Inicio
                 </Button>
                 
-                {incorrectQuestions.length > 0 && (
+                {incorrectCount > 0 && (
                   <Button 
                     variant="outline" 
                     className="w-full"
                     onClick={() => navigate('/quiz/review')}
                   >
                     <RotateCcw className="w-4 h-4 mr-2" />
-                    Repasar Errores ({incorrectQuestions.length})
+                    Repasar Errores ({incorrectCount})
                   </Button>
                 )}
                 
