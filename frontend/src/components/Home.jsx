@@ -47,8 +47,8 @@ const Home = () => {
       title: 'Repasar Errores',
       description: 'Practica las preguntas que has fallado anteriormente',
       icon: RotateCcw,
-      color: 'bg-gradient-to-br from-purple-500 to-purple-600',
-      hoverColor: 'from-purple-600 to-purple-700',
+      color: 'bg-gradient-to-br from-stone-600 to-stone-700',
+      hoverColor: 'from-stone-700 to-stone-800',
       questions: '15 pendientes',
       time: 'Tu ritmo'
     }
