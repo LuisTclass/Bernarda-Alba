@@ -1,8 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   Trophy, 
   Target, 
@@ -18,12 +20,29 @@ import {
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { getUserStats } = useAuth();
+  const [userStats, setUserStats] = useState(null);
   
-  const { score, total, mode, answers, questions } = location.state || {
-    score: 0, total: 0, mode: 'practice', answers: {}, questions: []
+  const { results, mode, quizId } = location.state || {
+    results: { score: 0, total: 0, percentage: 0, category_breakdown: {} },
+    mode: 'practice'
   };
 
-  const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+  useEffect(() => {
+    // Refresh user stats after quiz completion
+    const refreshStats = async () => {
+      const stats = await getUserStats();
+      setUserStats(stats);
+    };
+    refreshStats();
+  }, [getUserStats]);
+
+  if (!results) {
+    navigate('/');
+    return null;
+  }
+
+  const { score, total, percentage, category_breakdown, incorrect_questions } = results;
   
   const getGrade = (percentage) => {
     if (percentage >= 90) return { grade: 'Excelente', color: 'text-green-600', bg: 'bg-green-50' };
@@ -57,37 +76,9 @@ const Results = () => {
   };
 
   // Calcular estadísticas por categoría
-  const categoryStats = {};
-  questions.forEach(question => {
-    if (!categoryStats[question.category]) {
-      categoryStats[question.category] = { correct: 0, total: 0 };
-    }
-    categoryStats[question.category].total++;
-    
-    const userAnswer = answers[question.id];
-    let isCorrect = false;
-    
-    if (question.type === 'boolean') {
-      isCorrect = userAnswer === question.correctAnswer;
-    } else if (question.type === 'multiple') {
-      isCorrect = userAnswer === question.correctAnswer;
-    }
-    // Para essays no contamos automáticamente
-    
-    if (isCorrect) {
-      categoryStats[question.category].correct++;
-    }
-  });
+  const categoryStats = category_breakdown || {};
 
-  const incorrectQuestions = questions.filter(question => {
-    const userAnswer = answers[question.id];
-    if (question.type === 'boolean') {
-      return userAnswer !== question.correctAnswer;
-    } else if (question.type === 'multiple') {
-      return userAnswer !== question.correctAnswer;
-    }
-    return false; // Para essays no consideramos automáticamente como incorrectas
-  });
+  const incorrectCount = (incorrect_questions && incorrect_questions.length) || (total - score);
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-slate-50 to-gray-100">
@@ -199,14 +190,14 @@ const Results = () => {
                   Volver al Inicio
                 </Button>
                 
-                {incorrectQuestions.length > 0 && (
+                {incorrectCount > 0 && (
                   <Button 
                     variant="outline" 
                     className="w-full"
                     onClick={() => navigate('/quiz/review')}
                   >
                     <RotateCcw className="w-4 h-4 mr-2" />
-                    Repasar Errores ({incorrectQuestions.length})
+                    Repasar Errores ({incorrectCount})
                   </Button>
                 )}
                 

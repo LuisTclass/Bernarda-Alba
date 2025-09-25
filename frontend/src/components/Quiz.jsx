@@ -6,6 +6,8 @@ import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../contexts/AuthContext';
+import { quizAPI } from '../api';
 import { 
   Clock, 
   CheckCircle, 
@@ -17,12 +19,12 @@ import {
   BookOpen,
   Target
 } from 'lucide-react';
-import { mockQuestions } from '../mock';
 
 const Quiz = () => {
   const { mode } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { token } = useAuth();
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
@@ -30,19 +32,38 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(mode === 'exam' ? 1800 : null); // 30 minutos para examen
   const [isFinished, setIsFinished] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentQuiz, setCurrentQuiz] = useState(null);
 
-  // Filtrar preguntas según el modo
-  const questions = useMemo(() => {
-    let filtered = [...mockQuestions];
-    if (mode === 'exam') {
-      // Seleccionar 20 preguntas aleatorias para el examen
-      filtered = filtered.sort(() => 0.5 - Math.random()).slice(0, 20);
-    } else if (mode === 'review') {
-      // Simular preguntas falladas previamente
-      filtered = filtered.filter(q => [1, 4, 7, 8].includes(q.id));
+  // Inicializar quiz al cargar el componente
+  useEffect(() => {
+    const initializeQuiz = async () => {
+      try {
+        const quizData = {
+          mode: mode,
+          question_count: mode === 'exam' ? 20 : null
+        };
+
+        const quizResponse = await quizAPI.startQuiz(quizData, token);
+        setQuestions(quizResponse.questions);
+        setCurrentQuiz(quizResponse);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error starting quiz:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo cargar el quiz. Inténtalo de nuevo.",
+          duration: 3000,
+        });
+        navigate('/');
+      }
+    };
+
+    if (token) {
+      initializeQuiz();
     }
-    return filtered;
-  }, [mode]);
+  }, [mode, token, navigate, toast]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -63,19 +84,33 @@ const Quiz = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswer = (answer) => {
+  const handleAnswer = async (answer) => {
     setSelectedAnswer(answer);
     setUserAnswers({ ...userAnswers, [currentQuestion.id]: answer });
     
-    if (mode === 'practice') {
-      setShowExplanation(true);
-      const isCorrect = currentQuestion.type === 'boolean' 
-        ? answer === currentQuestion.correctAnswer
-        : answer === currentQuestion.correctAnswer;
-      
+    try {
+      const answerResponse = await quizAPI.submitAnswer(
+        currentQuiz.quiz_id,
+        {
+          question_id: currentQuestion.id,
+          user_answer: answer
+        },
+        token
+      );
+
+      if (mode === 'practice') {
+        setShowExplanation(true);
+        toast({
+          title: answerResponse.correct ? "¡Correcto!" : "Incorrecto",
+          description: answerResponse.explanation,
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting answer:', error);
       toast({
-        title: isCorrect ? "¡Correcto!" : "Incorrecto",
-        description: currentQuestion.explanation,
+        title: "Error",
+        description: "Error al enviar la respuesta. Inténtalo de nuevo.",
         duration: 3000,
       });
     }
@@ -99,29 +134,37 @@ const Quiz = () => {
     }
   };
 
-  const handleFinishQuiz = () => {
+  const handleFinishQuiz = async () => {
     setIsFinished(true);
-    // Calcular resultados
-    let correctCount = 0;
-    questions.forEach(question => {
-      const userAnswer = userAnswers[question.id];
-      if (question.type === 'boolean') {
-        if (userAnswer === question.correctAnswer) correctCount++;
-      } else if (question.type === 'multiple') {
-        if (userAnswer === question.correctAnswer) correctCount++;
-      }
-      // Para essays no contamos automáticamente como correcto
-    });
     
-    navigate('/results', { 
-      state: { 
-        score: correctCount, 
-        total: questions.length, 
-        mode,
-        answers: userAnswers,
-        questions 
-      } 
-    });
+    try {
+      const finishResponse = await quizAPI.finishQuiz(
+        currentQuiz.quiz_id,
+        {
+          end_time: new Date().toISOString(),
+          answers: Object.entries(userAnswers).map(([questionId, userAnswer]) => ({
+            question_id: questionId,
+            user_answer: userAnswer
+          }))
+        },
+        token
+      );
+      
+      navigate('/results', { 
+        state: { 
+          results: finishResponse,
+          mode,
+          quizId: currentQuiz.quiz_id
+        } 
+      });
+    } catch (error) {
+      console.error('Error finishing quiz:', error);
+      toast({
+        title: "Error",
+        description: "Error al finalizar el quiz. Inténtalo de nuevo.",
+        duration: 3000,
+      });
+    }
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -141,6 +184,17 @@ const Quiz = () => {
       default: return BookOpen;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-stone-600">Preparando tu quiz...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentQuestion) return <div>Cargando...</div>;
 

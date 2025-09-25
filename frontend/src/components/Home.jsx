@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   BookOpen, 
   Clock, 
@@ -14,12 +15,36 @@ import {
   Heart, 
   Eye,
   TrendingUp,
-  Star
+  Star,
+  LogOut
 } from 'lucide-react';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user, logout, getUserStats, getUserProgress } = useAuth();
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [userStats, setUserStats] = useState(null);
+  const [userProgress, setUserProgress] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const [stats, progress] = await Promise.all([
+          getUserStats(),
+          getUserProgress()
+        ]);
+        setUserStats(stats);
+        setUserProgress(progress);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [getUserStats, getUserProgress]);
 
   const studyModes = [
     {
@@ -27,8 +52,8 @@ const Home = () => {
       title: 'Modo Práctica',
       description: 'Estudia sin presión con retroalimentación inmediata',
       icon: BookOpen,
-      color: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
-      hoverColor: 'from-emerald-600 to-emerald-700',
+      color: 'bg-gradient-to-br from-slate-600 to-slate-700',
+      hoverColor: 'from-slate-700 to-slate-800',
       questions: '∞ preguntas',
       time: 'Sin límite'
     },
@@ -37,8 +62,8 @@ const Home = () => {
       title: 'Simulacro Selectividad',
       description: 'Examen cronometrado como el real de selectividad',
       icon: Clock,
-      color: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      hoverColor: 'from-blue-600 to-blue-700',
+      color: 'bg-gradient-to-br from-red-700 to-red-800',
+      hoverColor: 'from-red-800 to-red-900',
       questions: '20 preguntas',
       time: '30 minutos'
     },
@@ -47,36 +72,78 @@ const Home = () => {
       title: 'Repasar Errores',
       description: 'Practica las preguntas que has fallado anteriormente',
       icon: RotateCcw,
-      color: 'bg-gradient-to-br from-purple-500 to-purple-600',
-      hoverColor: 'from-purple-600 to-purple-700',
+      color: 'bg-gradient-to-br from-stone-600 to-stone-700',
+      hoverColor: 'from-stone-700 to-stone-800',
       questions: '15 pendientes',
       time: 'Tu ritmo'
     }
   ];
 
-  const quickStats = [
-    { label: 'Preguntas correctas', value: '35/50', icon: Target, color: 'text-emerald-600' },
-    { label: 'Racha actual', value: '7 seguidas', icon: Trophy, color: 'text-amber-600' },
-    { label: 'Tiempo promedio', value: '45 seg', icon: TrendingUp, color: 'text-blue-600' }
-  ];
+  const quickStats = userStats ? [
+    { 
+      label: 'Preguntas correctas', 
+      value: `${userStats.correct_answers}/${userStats.total_questions}`, 
+      icon: Target, 
+      color: 'text-emerald-600' 
+    },
+    { 
+      label: 'Racha actual', 
+      value: `${userStats.streak} seguidas`, 
+      icon: Trophy, 
+      color: 'text-amber-600' 
+    },
+    { 
+      label: 'Tiempo promedio', 
+      value: `${userStats.average_time} seg`, 
+      icon: TrendingUp, 
+      color: 'text-blue-600' 
+    }
+  ] : [];
 
-  const themes = [
-    { name: 'Personajes', progress: 80, icon: Users, questions: 15 },
-    { name: 'Temas principales', progress: 67, icon: Heart, questions: 18 },
-    { name: 'Simbolismo', progress: 65, icon: Eye, questions: 22 }
-  ];
+  const themes = userProgress ? Object.entries(userProgress.category_stats || {}).map(([category, stats]) => ({
+    name: category.charAt(0).toUpperCase() + category.slice(1),
+    progress: stats.percentage || 0,
+    icon: category === 'personajes' ? Users : category === 'temas' ? Heart : Eye,
+    questions: stats.total || 0
+  })) : [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-stone-600">Cargando tu progreso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
       {/* Header */}
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent mb-4">
+          <div className="flex justify-between items-center mb-6">
+            <div></div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-stone-600">Bienvenido, {user?.name}</span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={logout}
+                className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Salir
+              </Button>
+            </div>
+          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-800 to-stone-700 bg-clip-text text-transparent mb-4">
             La Casa de Bernarda Alba
           </h1>
-          <p className="text-xl text-gray-600 mb-2">Prepárate para la Selectividad Española</p>
-          <Badge variant="outline" className="text-sm px-3 py-1">
-            <Star className="w-4 h-4 mr-1" />
+          <p className="text-xl text-stone-600 mb-2">Prepárate para la Selectividad Española</p>
+          <Badge variant="outline" className="text-sm px-3 py-1 border-stone-300 text-stone-700">
+            <Star className="w-4 h-4 mr-1 fill-amber-400 text-amber-500" />
             Federico García Lorca
           </Badge>
         </div>
@@ -167,17 +234,17 @@ const Home = () => {
             </div>
 
             {/* Quick Actions */}
-            <Card className="mt-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+            <Card className="mt-6 bg-gradient-to-br from-red-50 to-red-100 border-red-200">
               <CardHeader>
-                <CardTitle className="text-lg text-amber-800">Consejo de Estudio</CardTitle>
+                <CardTitle className="text-lg text-red-900">Consejo de Estudio</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-amber-700 mb-4">
-                  Enfócate en el simbolismo y los temas principales. Son fundamentales para la selectividad.
+                <p className="text-sm text-red-800 mb-4">
+                  La represión y el luto dominan la casa. Analiza cómo estos temas se reflejan en cada personaje.
                 </p>
                 <Button 
                   size="sm" 
-                  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
+                  className="w-full bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900"
                   onClick={() => navigate('/quiz/practice')}
                 >
                   Empezar a Practicar
